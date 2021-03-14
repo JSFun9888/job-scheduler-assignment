@@ -14,27 +14,28 @@ public class ClientJobScheduler {
       DataOutputStream dout = new DataOutputStream(s.getOutputStream());
       String str = "";
 
+      //send HELO mesg
       dout.writeUTF("HELO");
       dout.flush();
-
+      //read the ok msg
       str = (String)din.readUTF();
       System.out.print(str); 
-
+      //send Auth msg? used my name for now
       dout.writeUTF("AUTH Jaime");
       dout.flush();
-
+      //read the reply
       str = (String)din.readUTF();
       System.out.print(str); 
-
+      //send REDY msg
       dout.writeUTF("REDY");
       dout.flush();
-
+      //read the reply
       str = (String)din.readUTF();
       System.out.print(str); 
-
+      //tell server to quit
       dout.writeUTF("QUIT");
       dout.flush();
-
+      //read reply
       str = (String)din.readUTF();
       System.out.print(str); 
       
