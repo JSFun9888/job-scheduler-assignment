@@ -2,10 +2,10 @@ import java.net.*;
 import java.io.*;
 
 public class ClientJobScheduler {
-  private static String HELO = "HELO";
-  private static String AUTH = "AUTH xxx";
-  private static String REDY = "REDY";
-  private static String QUIT = "QUIT";
+  public static String HELO = "HELO";
+  public static String AUTH = "AUTH xxx";
+  public static String REDY = "REDY";
+  public static String QUIT = "QUIT";
   
   public static void main (String args []){
     try{
@@ -14,37 +14,25 @@ public class ClientJobScheduler {
       DataOutputStream dout = new DataOutputStream(s.getOutputStream());
       String str = "";
 
-      dout.writeUTF(HELO);
+      dout.writeUTF("HELO");
       dout.flush();
 
       str = (String)din.readUTF();
       System.out.print(str); 
 
-      dout.writeUTF(AUTH);
+      dout.writeUTF("AUTH Jaime");
       dout.flush();
 
       str = (String)din.readUTF();
       System.out.print(str); 
 
-      str = (String)din.readUTF();
-      System.out.print(str); 
-
-      str = (String)din.readUTF();
-      System.out.print(str); 
-
-      dout.writeUTF(REDY);
+      dout.writeUTF("REDY");
       dout.flush();
 
       str = (String)din.readUTF();
       System.out.print(str); 
 
-      dout.writeUTF(REDY);
-      dout.flush();
-
-      str = (String)din.readUTF();
-      System.out.print(str); 
-
-      dout.writeUTF(QUIT);
+      dout.writeUTF("QUIT");
       dout.flush();
 
       str = (String)din.readUTF();
