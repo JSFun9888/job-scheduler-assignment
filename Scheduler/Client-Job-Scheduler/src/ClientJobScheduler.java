@@ -28,7 +28,7 @@ public class ClientJobScheduler {
 
       //read the reply for HELO
       int read = bin.read();
-      System.out.println("RCVD" + read); 
+      System.out.println("RCVD " + read); 
 
       //send Auth msg to server
       bout.write(AUTH.getBytes());
@@ -36,9 +36,9 @@ public class ClientJobScheduler {
 
       //read the reply AUTH
       read = bin.read();
-      System.out.println("RCVD" + read);
+      System.out.println("RCVD " + read);
       read = bin.read();
-      System.out.println("RCVD" + read); 
+      System.out.println("RCVD " + read); 
       
       //send REDY msg
       bout.write(REDY.getBytes());
@@ -46,7 +46,7 @@ public class ClientJobScheduler {
 
       //read the reply to REDY
       read = bin.read();
-      System.out.println("RCVD" + read); 
+      System.out.println("RCVD " + read); 
 
       //tell server to quit
       bout.write(QUIT.getBytes());
