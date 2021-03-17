@@ -1,3 +1,9 @@
+/*
+COMP3100 Distributed Systems group project
+Authors: Kelly Flett, Scott Lin, Jaime Sun
+Student ID:45350043 , 45985995, 45662398
+Practical Session: Wednesday 13:00 - 14:55
+*/
 import java.net.*;
 import java.io.*;
 
