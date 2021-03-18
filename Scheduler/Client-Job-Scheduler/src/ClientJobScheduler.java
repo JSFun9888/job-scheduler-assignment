@@ -5,6 +5,7 @@ Student ID:45350043 , 45985995, 45662398
 Practical Session: Wednesday 13:00 - 14:55
 */
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.io.*;
 
 public class ClientJobScheduler {
@@ -13,6 +14,25 @@ public class ClientJobScheduler {
   public static String REDY = "REDY";
   public static String QUIT = "QUIT";
   public static char[] HI = {'H','E','L','O'};
+
+  public ClientJobScheduler(){
+    
+  }
+
+  //Method to read a msg from the server, returns the string
+  public String readMsg(byte[] b, BufferedInputStream bis) {
+    try {
+      bis.read(b);
+      String str = new String(b, StandardCharsets.UTF_8);
+      return str;
+    } catch (Exception e){
+      System.out.println(e);
+    }
+    
+    
+
+    return "error";
+  }
   
   public static void main (String args []){
     try{
@@ -21,10 +41,9 @@ public class ClientJobScheduler {
       DataOutputStream dout = new DataOutputStream(s.getOutputStream());
       BufferedOutputStream bout = new BufferedOutputStream(dout);
       BufferedInputStream bin = new BufferedInputStream(din);
-      String str = "";
       System.out.println("connected");
 
-      
+      ClientJobScheduler cjs = new ClientJobScheduler();
 
       //send HELO mesg
       //dout.writeBytes(HELO);
@@ -33,38 +52,39 @@ public class ClientJobScheduler {
       bout.flush();
 
       //read the reply for HELO
-      int read = bin.read();
-      System.out.println("RCVD " + read); 
+      String serverReply = cjs.readMsg(new byte[32], bin);
+      System.out.println("RCVD in response to HELO: " + serverReply); 
 
       //send Auth msg to server
       bout.write(AUTH.getBytes());
       bout.flush();
 
       //read the reply AUTH
-      read = bin.read();
-      System.out.println("RCVD " + read);
-      read = bin.read();
-      System.out.println("RCVD " + read); 
+      serverReply = cjs.readMsg(new byte[32], bin);
+      System.out.println("RCVD in response to AUTH: " + serverReply);  
       
       //send REDY msg
       bout.write(REDY.getBytes());
       bout.flush();
 
       //read the reply to REDY
-      read = bin.read();
-      System.out.println("RCVD " + read); 
+      serverReply = cjs.readMsg(new byte[32], bin);
+      System.out.println("RCVD in response to REDY: " + serverReply);  
 
       //tell server to quit
       bout.write(QUIT.getBytes());
       bout.flush();
       
       //read reply
-      str = (String)din.readUTF();
-      System.out.println(str); 
+      serverReply = cjs.readMsg(new byte[32], bin);
+      System.out.println("RCVD in response to QUIT: " + serverReply); 
 
-      bout.close();
-      dout.close();
-      s.close();
+      if(serverReply.equals(QUIT)){
+        bout.close();
+        dout.close();
+        s.close();
+      }
+      
       
     } catch(Exception e){
       System.out.println(e);
