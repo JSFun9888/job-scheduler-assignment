@@ -6,7 +6,9 @@ Practical Session: Wednesday 13:00 - 14:55
 */
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.io.*;
+//import Servers.java;
 
 public class ClientJobScheduler {
   public static String HELO = "HELO";
@@ -14,7 +16,9 @@ public class ClientJobScheduler {
   public static String REDY = "REDY";
   public static String QUIT = "QUIT";
   public static char[] HI = {'H','E','L','O'};//don't need
-  
+  public ArrayList<Servers> serverList = new ArrayList<Servers>();
+  public Servers biggestServer;
+  public int coreCount = -1;
 
   public ClientJobScheduler(){
     
@@ -74,23 +78,46 @@ public class ClientJobScheduler {
 
       //new stuff for wk 5 prac
       //send GETS msg new stuff here
-      bout.write("GETS All".getBytes());
+      bout.write("GETS All".getBytes()); //get all server infos
       bout.flush();
-      serverReply = cjs.readMsg(new byte[100], bin);
+      serverReply = cjs.readMsg(new byte[1000], bin);
       System.out.println("RCVD in response to GETS All: " + serverReply);
       bout.write("OK".getBytes());
       bout.flush();
-      serverReply = cjs.readMsg(new byte[100], bin); //get all the server info
+      serverReply = cjs.readMsg(new byte[1000], bin); //get all the server info
       String[] arrOfStr = serverReply.split("\n"); //split the response into arr of strings
+      
+      for(String server: arrOfStr){
+        String[] individualServer = server.split(" ");
+        Servers serverIndividual = new Servers();
+        serverIndividual.serverName = individualServer[0];
+        serverIndividual.serverId = Integer.parseInt(individualServer[1]);
+        serverIndividual.state = individualServer[2];
+        serverIndividual.currStartTime = Integer.parseInt(individualServer[3]);
+        serverIndividual.cores = Integer.parseInt(individualServer[4]);
+        serverIndividual.mem = Integer.parseInt(individualServer[5]);
+        serverIndividual.disk = Integer.parseInt(individualServer[6]);
+        cjs.serverList.add(serverIndividual);
+      } // make a list of servers witht their attributes
+      
       System.out.println("RCVD in response to ok: " + serverReply);
+
       bout.write("OK".getBytes());
       bout.flush();
-      serverReply = cjs.readMsg(new byte[100], bin); 
+      serverReply = cjs.readMsg(new byte[1000], bin); 
       System.out.println("RCVD in response to ok: " + serverReply);//end of GETS
 
-      bout.write("SCHD 0 joon 0".getBytes()); //hard code of SCHD job 0 to server joon 0
+      //find biggest server
+      for(Servers serverToInspect: cjs.serverList){
+        if(cjs.coreCount < serverToInspect.cores){
+          cjs.biggestServer = serverToInspect;
+        }
+      }
+      String bigServer = "SCHD 0" + cjs.biggestServer.serverName + " " + Integer.toString(cjs.biggestServer.serverId);
+      System.out.println("The biggest Server is: " + bigServer);
+      bout.write(bigServer.getBytes()); //hard code of SCHD job 0 to server joon 0
       bout.flush();
-      serverReply = cjs.readMsg(new byte[100], bin);
+      serverReply = cjs.readMsg(new byte[1000], bin);
       System.out.println("RCVD in response to SCHD: " + serverReply);
 
       //send REDY msg
