@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.io.*;
 //import Servers.java;
 
-public class ClientJobScheduler {
+public class AllToLargest {
   public static String HELO = "HELO";
   public static String AUTH = "AUTH " + System.getProperty("user.name");
   public static String REDY = "REDY";
@@ -20,7 +20,7 @@ public class ClientJobScheduler {
   public int coreCount = -1;
   public Jobs currJob;
 
-  public ClientJobScheduler(){
+  public AllToLargest(){
     currJob = new Jobs();
   }
 
@@ -48,7 +48,7 @@ public class ClientJobScheduler {
       BufferedInputStream bin = new BufferedInputStream(din);
       System.out.println("connected");
 
-      ClientJobScheduler cjs = new ClientJobScheduler();
+      AllToLargest atl = new AllToLargest();
 
       //send HELO mesg
       //dout.writeBytes(HELO);
@@ -57,7 +57,7 @@ public class ClientJobScheduler {
       bout.flush();
 
       //read the reply for HELO
-      String serverReply = cjs.readMsg(new byte[32], bin);
+      String serverReply = atl.readMsg(new byte[32], bin);
       System.out.println("RCVD in response to HELO: " + serverReply); 
 
       //send Auth msg to server
@@ -65,7 +65,7 @@ public class ClientJobScheduler {
       bout.flush();
 
       //read the reply AUTH
-      serverReply = cjs.readMsg(new byte[32], bin);
+      serverReply = atl.readMsg(new byte[32], bin);
       System.out.println("RCVD in response to AUTH: " + serverReply);  
       
         
@@ -78,7 +78,7 @@ public class ClientJobScheduler {
         bout.flush();
 
         //read the reply to REDY
-        serverReply = cjs.readMsg(new byte[1000], bin);
+        serverReply = atl.readMsg(new byte[1000], bin);
         System.out.println("RCVD in response to REDY: " + serverReply);
         
         //job capture
@@ -92,7 +92,7 @@ public class ClientJobScheduler {
             bout.flush();
 
             //read the reply to REDY
-            serverReply = cjs.readMsg(new byte[1000], bin);
+            serverReply = atl.readMsg(new byte[1000], bin);
             System.out.println("RCVD in response to REDY(job completed rdy): " + serverReply);
 
             //check for job complete msg "JCPL" can delete this later
@@ -112,20 +112,20 @@ public class ClientJobScheduler {
           break;
         }
         //get the job info
-        cjs.currJob.submitTime = Integer.parseInt(jobArr[1]);
-        cjs.currJob.jobID = Integer.parseInt(jobArr[2]);
-        cjs.currJob.estRuntime = Integer.parseInt(jobArr[3]);
-        cjs.currJob.core = Integer.parseInt(jobArr[4]);
-        cjs.currJob.memory = Integer.parseInt(jobArr[5]);
-        //cjs.currJob.disk = Integer.parseInt(jobArr[6]);
-        System.out.println(cjs.currJob.jobID);
+        atl.currJob.submitTime = Integer.parseInt(jobArr[1]);
+        atl.currJob.jobID = Integer.parseInt(jobArr[2]);
+        atl.currJob.estRuntime = Integer.parseInt(jobArr[3]);
+        atl.currJob.core = Integer.parseInt(jobArr[4]);
+        atl.currJob.memory = Integer.parseInt(jobArr[5]);
+        //atl.currJob.disk = Integer.parseInt(jobArr[6]);
+        System.out.println(atl.currJob.jobID);
 
         //new stuff for wk 5 prac
         //send GETS msg new stuff here
           // get the server info... to add a conditional to check later**
           bout.write("GETS All".getBytes()); //get all server infos
           bout.flush();
-          serverReply = cjs.readMsg(new byte[1000], bin);
+          serverReply = atl.readMsg(new byte[1000], bin);
           System.out.println("RCVD in response to GETS All: " + serverReply);
           String[] dataArr = serverReply.split(" ");
           int getsAllBuffSize = Integer.parseInt(dataArr[1].trim()) * Integer.parseInt(dataArr[2].trim());
@@ -133,7 +133,7 @@ public class ClientJobScheduler {
           System.out.println(getsAllBuffSize);
           bout.write("OK".getBytes());
           bout.flush();
-          serverReply = cjs.readMsg(new byte[getsAllBuffSize], bin); //get all the server info
+          serverReply = atl.readMsg(new byte[getsAllBuffSize], bin); //get all the server info
           System.out.println("RCVD in response to OK after GETS All: " + serverReply);
           String[] arrOfStr = serverReply.split("\n"); //split the response into arr of strings
 
@@ -148,33 +148,33 @@ public class ClientJobScheduler {
             serverIndividual.cores = Integer.parseInt(individualServer[4]);
             serverIndividual.mem = Integer.parseInt(individualServer[5]);
             serverIndividual.disk = Integer.parseInt(individualServer[6]);
-            cjs.serverList.add(serverIndividual);
+            atl.serverList.add(serverIndividual);
           }
           System.out.println("This is how many servers in the List");
-          System.out.println(cjs.serverList.size());
+          System.out.println(atl.serverList.size());
         
             System.out.println("RCVD in response to ok: " + serverReply);
 
             bout.write("OK".getBytes());
             bout.flush();
-            serverReply = cjs.readMsg(new byte[1000], bin); 
+            serverReply = atl.readMsg(new byte[1000], bin); 
             System.out.println("RCVD in response to ok: " + serverReply);//end of GETS
       
             //find biggest server
-            for(Servers serverToInspect: cjs.serverList){
-              if(cjs.coreCount < serverToInspect.cores){
-                cjs.biggestServer = serverToInspect;
-                cjs.coreCount = serverToInspect.cores;
+            for(Servers serverToInspect: atl.serverList){
+              if(atl.coreCount < serverToInspect.cores){
+                atl.biggestServer = serverToInspect;
+                atl.coreCount = serverToInspect.cores;
               }
             }
 
 
           //Schedule the job to the biggest server
-          String bigServer = "SCHD " + Integer.toString(cjs.currJob.jobID) + " " + cjs.biggestServer.serverName + " " + Integer.toString(cjs.biggestServer.serverId);
+          String bigServer = "SCHD " + Integer.toString(atl.currJob.jobID) + " " + atl.biggestServer.serverName + " " + Integer.toString(atl.biggestServer.serverId);
           System.out.println("The biggest Server is: " + bigServer);
           bout.write(bigServer.getBytes()); //hard code of SCHD job 0 to server joon 0
           bout.flush();
-          serverReply = cjs.readMsg(new byte[1000], bin);
+          serverReply = atl.readMsg(new byte[1000], bin);
           System.out.println("RCVD in response to SCHD: " + serverReply);
           
       } 
@@ -184,7 +184,7 @@ public class ClientJobScheduler {
       bout.flush();
       
       //read reply
-      serverReply = cjs.readMsg(new byte[32], bin);
+      serverReply = atl.readMsg(new byte[32], bin);
       System.out.println("RCVD in response to QUIT: " + serverReply); 
 
       //quit once server acknowledes "QUIT"
@@ -201,4 +201,5 @@ public class ClientJobScheduler {
 
     
   }
+
 }
