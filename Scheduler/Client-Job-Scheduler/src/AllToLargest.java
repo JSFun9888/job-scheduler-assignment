@@ -7,17 +7,19 @@ Practical Session: Wednesday 13:00 - 14:55
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+
+
 import java.io.*;
 //import Servers.java;
 
 public class AllToLargest {
   //Server Messages
-  public static String HELO = "HELO";
-  public static String AUTH = "AUTH " + System.getProperty("user.name");
-  public static String REDY = "REDY";
-  public static String QUIT = "QUIT";
-  public static String GETSALL = "GETS All";
-  public static String OK = "OK";
+  public static String HELO = "HELO\n";
+  public static String AUTH = "AUTH " + System.getProperty("user.name") + "\n";
+  public static String REDY = "REDY\n";
+  public static String QUIT = "QUIT\n";
+  public static String GETSALL = "GETS All\n";
+  public static String OK = "OK\n";
   public static String NONE = "NONE";
   public static String JCPL = "JCPL";
 
@@ -28,6 +30,7 @@ public class AllToLargest {
   public Jobs currJob;
   public String bigServer = "";
   public String[] jobArr = null;
+  public String[] serverStringArr = null;
   public static int buffSize = 1000;
   public static String IP = "127.0.0.1";
   public static int PORT = 50000;
@@ -41,8 +44,11 @@ public class AllToLargest {
       Socket s = new Socket(IP, PORT);
       DataInputStream din = new DataInputStream(s.getInputStream());
       DataOutputStream dout = new DataOutputStream(s.getOutputStream());
+      
       BufferedOutputStream bout = new BufferedOutputStream(dout);
       BufferedInputStream bin = new BufferedInputStream(din);
+      BufferedReader br = new BufferedReader(
+        new InputStreamReader(bin, StandardCharsets.UTF_8));
       System.out.println("connected");
 
       AllToLargest atl = new AllToLargest();
@@ -76,12 +82,14 @@ public class AllToLargest {
 
         //send GETS All msg to get a list of servers 
         //but only if not already done
-        atl.getServers(atl, bin, bout);
+        atl.getServers(atl, bin, bout, br);
         
         //find biggest server if not found already
         if(atl.biggestServer==null){
           atl.findBiggestServer(atl);
         }
+        System.out.println("Checking I am finding the biggest server");
+        System.out.println(atl.bigServer);
 
         //create biggest server schedule message then
         //Schedule the job to the biggest server
@@ -155,10 +163,17 @@ public class AllToLargest {
     System.out.println("RCVD in response: " + atl.serverReply);
   }
 
-  //read and print out server msg with a dynamic buffer size
-  public void readServerMsgDynamic(AllToLargest atl, BufferedInputStream bin, int getsAllBuffSize){
-    atl.serverReply = atl.readMsg(new byte[getsAllBuffSize], bin);
-    System.out.println("RCVD in response: " + atl.serverReply);
+  //read and store the server strings one line at a time
+  public void readServerMsgDynamic(AllToLargest atl, BufferedReader br, int arrSize){
+
+    atl.serverStringArr = new String[arrSize];
+      for(int i = 0; i < arrSize ; i++){
+        try {
+          atl.serverStringArr[i] = br.readLine();
+        } catch (IOException e) {
+          e.printStackTrace();
+        }
+      }
   }
 
   //create a list of servers from a string array
@@ -189,7 +204,7 @@ public class AllToLargest {
 
   //create the schedule message to send
   public void biggestServerMsg(AllToLargest atl){
-    atl.bigServer = "SCHD " + Integer.toString(atl.currJob.jobID) + " " + atl.biggestServer.serverName + " " + Integer.toString(atl.biggestServer.serverId);
+    atl.bigServer = "SCHD " + Integer.toString(atl.currJob.jobID) + " " + atl.biggestServer.serverName + " " + Integer.toString(atl.biggestServer.serverId) + "\n";
     System.out.println("The biggest Server is: " + atl.bigServer);
   }
 
@@ -223,27 +238,21 @@ public class AllToLargest {
   }
 
   //gets the list of servers from the server
-  public void getServers(AllToLargest atl, BufferedInputStream bin, BufferedOutputStream bout){
+  public void getServers(AllToLargest atl, BufferedInputStream bin, BufferedOutputStream bout, BufferedReader br){
     if(atl.serverList.isEmpty()){
       atl.sendMsg(GETSALL, bout);
 
       atl.readServerMsg(atl, bin);
       
       String[] dataArr = atl.serverReply.split(" "); //split response into words
-      int getsAllBuffSize = Integer.parseInt(dataArr[1].trim()) * Integer.parseInt(dataArr[2].trim());
-      System.out.println("This is the gets buffer size!");
-      System.out.println(getsAllBuffSize);
       atl.sendMsg(OK, bout);
 
-      atl.readServerMsgDynamic(atl, bin, getsAllBuffSize);
-
-      String[] arrOfStr = atl.serverReply.split("\n"); //split the response into arr of strings
-
+      //read the msg one line at a time
+      atl.readServerMsgDynamic(atl, br, Integer.parseInt(dataArr[1]));
+      
+      String[] arrOfStr = atl.serverStringArr; //copy the strings over into arrOfStr
       //add servers to the server list with their info
       atl.populateServerList(arrOfStr, atl);
-
-      System.out.println("This is how many servers in the List");
-      System.out.println(atl.serverList.size());
     
       System.out.println("RCVD in response to ok: " + atl.serverReply);
 
